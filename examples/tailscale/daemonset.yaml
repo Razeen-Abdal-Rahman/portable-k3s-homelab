@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: tailscale
+  namespace: tailscale
+spec:
+  selector:
+    matchLabels:
+      name: tailscale
+  template:
+    metadata:
+      labels:
+        name: tailscale
+    spec:
+      serviceAccountName: tailscale
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+      - operator: Exists
+      containers:
+      - name: tailscale
+        image: docker.io/tailscale/tailscale:v1.94.1
+        env:
+        - name: TS_AUTHKEY
+          valueFrom:
+            secretKeyRef:
+              name: tailscale
+              key: TS_AUTHKEY
+        - name: TS_STATE_DIR
+          value: "/var/lib/tailscale"
+        - name: TS_USERSPACE
+          value: "false"
+        - name: TS_EXTRA_ARGS
+          value: "--accept-routes --accept-dns=false"
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        volumeMounts:
+        - name: tailscale-state
+          mountPath: /var/lib/tailscale
+        - name: dev-net-tun
+          mountPath: /dev/net/tun
+      volumes:
+      - name: tailscale-state
+        hostPath:
+          path: /var/lib/tailscale
+          type: DirectoryOrCreate
+      - name: dev-net-tun
+        hostPath:
+          path: /dev/net/tun

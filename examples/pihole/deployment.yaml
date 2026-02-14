@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  namespace: pihole
+  labels:
+    app: pihole
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      hostname: pihole
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: pihole
+          image: docker.io/pihole/pihole:2025.11.1
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+          env:
+            - name: TZ
+              value: "Europe/London"
+            - name: FTLCONF_webserver_api_password
+              valueFrom:
+                secretKeyRef:
+                  name: pihole-admin-pass
+                  key: WEBPASSWORD
+            - name: DNSMASQ_USER
+              value: "root"
+            - name: PIHOLE_DNS_1
+              value: "1.1.1.1"
+            - name: PIHOLE_DNS_2
+              value: "9.9.9.9"
+            - name: PIHOLE_DNS_3
+              value: "9.9.9.10"
+          ports:
+            - hostPort: 53
+              containerPort: 53
+              protocol: UDP
+            - hostPort: 53
+              containerPort: 53
+              protocol: TCP
+            - hostPort: 80
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: etc-pihole
+              mountPath: /etc/pihole
+            - name: dnsmasq
+              mountPath: /etc/dnsmasq.d
+      volumes:
+        - name: etc-pihole
+          hostPath:
+            path: /opt/pihole/etc-pihole
+            type: DirectoryOrCreate
+        - name: dnsmasq
+          hostPath:
+            path: /opt/pihole/etc-dnsmasq.d
+            type: DirectoryOrCreate

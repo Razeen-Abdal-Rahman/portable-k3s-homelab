@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linkding
+  namespace: linkding
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: linkding
+  template:
+    metadata:
+      labels:
+        app: linkding
+    spec:
+      containers:
+      - name: linkding
+        image: docker.io/sissbruecker/linkding:1.45.0
+        ports:
+        - containerPort: 9090
+        env:
+        - name: UWSGI_PROCESSES
+          value: "1"
+        - name: UWSGI_THREADS
+          value: "2"
+        - name: LD_SUPERUSER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: linkding-auth
+              key: username
+        - name: LD_SUPERUSER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: linkding-auth
+              key: password
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+        volumeMounts:
+            - name: data
+              mountPath: /etc/linkding/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: linkding-data
