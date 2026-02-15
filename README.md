@@ -6,8 +6,11 @@
 ![Selfhosted Badge](https://img.shields.io/badge/Self--Hosted-Yes-informational?style=for-the-badge&labelColor=%23000000&color=008000)
 ![pihole Badge](https://img.shields.io/badge/pihole-badge?style=for-the-badge&logo=pihole&logoColor=%2396060C&labelColor=%23000000&color=%2396060C)
 
+<div style="text-align: center;">
 
 ![Architecture Diagram](./diagrams/architecture.png)
+
+</div>
 
 This repository documents a real-world Kubernetes environment running on Raspberry Pi hardware.
 
